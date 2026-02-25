@@ -33,6 +33,7 @@ Default URLs:
 
 - Frontend (workspace script): `http://localhost:5173`
 - Backend API: `http://localhost:8000`
+- EC2 example: `http://<EC2_PUBLIC_IP>:5173` and `http://<EC2_PUBLIC_IP>:8000`
 
 ## Run services separately
 
@@ -54,7 +55,14 @@ npm install
 npm run dev
 ```
 
-Default frontend dev URL (direct frontend command): `http://localhost:8080`
+Default frontend dev URL (direct frontend command): `http://localhost:5173`
+
+For EC2/external access, start with host binding:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+npm run dev -- --host 0.0.0.0 --port 5173
+```
 
 ## Notes
 

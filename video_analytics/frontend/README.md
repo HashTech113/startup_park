@@ -10,15 +10,17 @@ npm install
 npm run dev
 ```
 
-Default dev URL: `http://localhost:8080`
+Default dev URL: `http://localhost:5173`
 
 ## Backend API URL
 
-Create `frontend/.env.local`:
+Optional: create `frontend/.env.local` to override backend URL:
 
 ```bash
 VITE_API_BASE_URL=http://localhost:8000
 ```
+
+If `VITE_API_BASE_URL` is not set, the app uses the current browser host with port `8000` (for example, `http://13.53.42.135:8000` when opened via EC2 public IP).
 
 ## Dashboard behavior
 

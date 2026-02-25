@@ -11,6 +11,7 @@ import {
   type AnalyticsData,
   type VideoDetails,
 } from "@/lib/api";
+import { toBackendAssetUrl } from "@/lib/http";
 import { toast } from "@/hooks/use-toast";
 import { useEffect, useMemo, useState } from "react";
 
@@ -159,11 +160,10 @@ export default function Dashboard() {
   const fetchAnalytics = async () => {
     try {
       const response = await getAnalytics();
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
       response.data.recent_uploads = response.data.recent_uploads.map((upload) => ({
         ...upload,
         processedVideo: upload.processedVideo && !upload.processedVideo.startsWith("http")
-          ? `${apiBaseUrl}${upload.processedVideo}`
+          ? toBackendAssetUrl(upload.processedVideo)
           : upload.processedVideo,
       }));
       setAnalytics(response.data);
@@ -206,7 +206,7 @@ export default function Dashboard() {
       const response = await getVideoDetails(videoId);
       const details = response.data;
       if (details.processedVideo && !details.processedVideo.startsWith("http")) {
-        details.processedVideo = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}${details.processedVideo}`;
+        details.processedVideo = toBackendAssetUrl(details.processedVideo);
       }
       setSelectedVideo(details);
     } catch {

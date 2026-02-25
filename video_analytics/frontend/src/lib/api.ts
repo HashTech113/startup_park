@@ -1,5 +1,5 @@
-// API configuration for connecting to the Python backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+import { API_BASE_URL } from "@/config/env";
+import { requestBlob, requestJson, toBackendAssetUrl } from "@/lib/http";
 
 interface ApiResponse<T> {
   data: T;
@@ -67,62 +67,33 @@ interface VideoDetails {
 }
 
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      ...options?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
+  return requestJson<ApiResponse<T>>(endpoint, options);
 }
 
 export async function uploadVideo(file: File): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
-
-  const response = await fetch(`${API_BASE_URL}/upload-video`, {
+  return requestJson<UploadResponse>("/upload-video", {
     method: "POST",
     body: formData,
   });
-
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result?.detail || `API Error: ${response.status} ${response.statusText}`);
-  }
-
-  return result as UploadResponse;
 }
 
 export async function getUploadJobStatus(jobId: string): Promise<UploadJobStatus> {
   const response = await apiRequest<UploadJobStatus>(`/api/jobs/${jobId}`);
   const data = response.data;
-  if (data?.processed_video && !data.processed_video.startsWith("http")) {
-    data.processed_video = `${API_BASE_URL}${data.processed_video}`;
+  if (data?.processed_video) {
+    data.processed_video = toBackendAssetUrl(data.processed_video);
   }
   return data;
 }
-
-export { API_BASE_URL };
 
 export async function getAnalytics(): Promise<ApiResponse<AnalyticsData>> {
   return apiRequest<AnalyticsData>("/api/analytics");
 }
 
 export async function downloadReport(): Promise<Blob> {
-  const response = await fetch(`${API_BASE_URL}/api/analytics/report`, {
-    method: "GET",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to download report");
-  }
-
-  return response.blob();
+  return requestBlob("/api/analytics/report", { method: "GET" });
 }
 
 export async function getVideoDetails(videoId: string): Promise<ApiResponse<VideoDetails>> {
@@ -130,13 +101,10 @@ export async function getVideoDetails(videoId: string): Promise<ApiResponse<Vide
 }
 
 export async function deleteVideo(videoId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/videos/${videoId}`, {
+  await requestJson<{ success: boolean; message: string }>(`/api/videos/${videoId}`, {
     method: "DELETE",
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete video");
-  }
 }
 
+export { API_BASE_URL };
 export type { ApiResponse, UploadResponse, UploadJobStatus, AnalyticsData, VideoDetails };
